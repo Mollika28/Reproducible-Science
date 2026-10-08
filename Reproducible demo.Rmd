@@ -1,0 +1,133 @@
+---
+title: "R Notebook"
+author: "Mollika Das"
+output:
+  html_document:
+    df_print: paged
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+#Here we need to use knit button to see the html or docx or pdf.
+
+## Use Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+###First I have loaded the library because this is the very first step to get started with R.
+
+```{r}
+
+library(performance)
+library(tidyverse)
+```
+
+
+###Then need to start with read the dAta TO GET OUR DATASET ON WHICH WE WILL WORK.
+
+```{r}
+df_Park<-read_csv("Parketal2001WBK-2.csv")
+```
+###Quality control: I checked the quality of the data so that I can identify the fault or problems in data if it contains any. I have used histogram to see any uncertainty in my data or anything else.
+
+```{r}
+df_Park%>% ggplot(aes(x = Airspeed)) +
+  geom_histogram()
+```
+
+### plot to visualize the relationship between the airspeed and wing beat amplitude.We made simple plot here by using only one bird and kept it simple to see the relationship between the airspeed and wing beat amplitude
+###to get a plot without a smooth line , only with the points
+
+```{r}
+df_Park%>%
+  filter(Bird_ID==1)%>%
+  ggplot(aes(x=Airspeed,y=Wingbeat_Amp))+
+  geom_point()+
+  xlim(0, 14)+
+  ylim(40,130)+
+  theme_bw()
+```
+
+###Here added the smooth line command to get a line over the points to get a good idea what is happening. By the plot it is clearly visible that when the airspeed increases, the wingbeat amplitude is also increased. 
+
+
+```{r}
+df_Park%>%
+  filter(Bird_ID==1)%>%
+  ggplot(aes(x=Airspeed,y=Wingbeat_Amp))+
+  geom_point()+
+  theme_bw() + 
+stat_smooth(method="lm")
+```
+
+###
+##Now we have a new dataframe with only Bird 1 records.We need to filtering data with bird id 1 and We will conduct a regression analysis using the overloaded function lm()to check the model. I have titled the new model object as lm_wba_1 , to indicate that the object contains the first linear model about wingbeat amplitudes which we have built today. Also, here I have used check model command for the model diagonstics.
+
+```{r}
+df_bird1 <- df_Park %>%
+  filter(Bird_ID == 1)
+
+lm_wba_1 <- lm(Wingbeat_Amp ~ Airspeed,
+               data = df_bird1)
+
+str(lm_wba_1)
+
+check_model(lm_wba_1)
+
+```
+
+###Because the previous plot was kind of tough to understand at the starting, , we can also make a frequency histogram of the residuals directly.Then for getting coeffient table we used summary and then used confint to get 95% confidence interval to check if our data is within this level.Afterthat run summary anova to check the model again and compare the p value from the previous coefficient table and from the anova table.
+
+
+```{r}
+hist(lm_wba_1$residuals)
+summary(lm_wba_1)
+confint(lm_wba_1)
+
+summary.aov(lm_wba_1)
+```
+####The update() function is an extremely useful function we’ll rely heavily on in future modules. In the line of code below, we’re asking R to use the same model structure as specified in model 1, but with only a subset of the data (which does not include row 1).
+
+```{r}
+lm_wba_2 <- update(lm_wba_1, data = df_bird1[-1, ])
+summary(lm_wba_1)
+summary(lm_wba_2)
+```
+###We have made a new predicted data set to Using a model to generate predictions.Then we did same as before to plotting the predictions.
+
+
+
+```{r}
+f_newbird <- 
+  tibble(Airspeed = seq(min(df_bird1$Airspeed), # the minimum of the range
+                        max(df_bird1$Airspeed), # the maximum of the range
+                        length = 100)) # this tells R how many values to generate
+
+
+df_preds <- predict(lm_wba_1,
+                    newdata = df_newbird,
+                    int = "c")
+
+df_newbird_preds <- bind_cols(df_newbird, as_tibble(df_preds))
+
+ggplot(df_newbird_preds,
+       aes(x = Airspeed, y = fit)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = lwr,
+                  ymax = upr),
+              alpha = 0.25) + # this argument makes the CI transparent
+  labs(x = "Airspeed (m/s)",
+       y = expression("Wingbeat Amplitude(degrees C)")) + 
+  geom_point(data = df_bird1,aes(y=Wingbeat_Amp),## to get the line and points together we used this code along with the previous code. we can get any help from the 
+             colour = "blue")+
+  geom_line(colour = ("red"))
+  theme_bw()
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
