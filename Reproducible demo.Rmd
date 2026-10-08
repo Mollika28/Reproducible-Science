@@ -74,6 +74,8 @@ str(lm_wba_1)
 
 check_model(lm_wba_1)
 
+
+
 ```
 
 ###Because the previous plot was kind of tough to understand at the starting, , we can also make a frequency histogram of the residuals directly.Then for getting coeffient table we used summary and then used confint to get 95% confidence interval to check if our data is within this level.Afterthat run summary anova to check the model again and compare the p value from the previous coefficient table and from the anova table.
