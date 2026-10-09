@@ -6,4 +6,7 @@ To run this project we need to install R studio, here is the link https://posit.
 We need to load packages like tidyverse,performance which you can find in the R script
 the dataset Parketal2001 you can find in the GitHubData directory
 
-##How to 
+##How to reproduce
+1. please download this repository
+2. Open the script in R studio and install the packages in the starting of the project and it requires only one time loading
+3. Run all the codes entirely 
